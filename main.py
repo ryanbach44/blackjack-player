@@ -3,6 +3,18 @@ from dataclasses import dataclass
 from bakery import assert_equal
 import random
 
+@dataclass
+class Deck:
+    deck: list[str]
+    
+@dataclass
+class State:
+    total_points: int
+    num_decks: int
+    card_decks: list[Deck]
+    player_cards: str
+    dealer_cards: str
+
 def rand(start: int, stop: int) -> int:
     """
     Generates a random number
@@ -127,18 +139,6 @@ assert_equal(hand_score("5♠10♣"), 15)
 assert_equal(hand_score("10♠A♣"), 21)
 assert_equal(hand_score("5♠A♣"), 16)
 assert_equal(hand_score("4♠10♣5♠A♣"), 20)
-
-@dataclass
-class Deck:
-    deck: list[str]
-    
-@dataclass
-class State:
-    total_points: int
-    num_decks: int
-    card_decks: list[Deck]
-    player_cards: str
-    dealer_cards: str
     
 @route
 def index(state: State) -> Page:
