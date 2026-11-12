@@ -3,6 +3,17 @@ from dataclasses import dataclass
 from bakery import assert_equal
 import random
 
+set_website_title("Blackjack Player")
+set_site_information(
+    author="Ryan Bachman",
+    description="Plays an accurate game of blackjack",
+    sources="Thanks to the Drafter docs and Mr. Peck",
+    planning=[""],
+    links=["https://github.com/ryanbach44/blackjack-player"]
+)
+hide_debug_information()
+set_website_framed(False)
+
 @dataclass
 class Deck:
     deck: list[str]
@@ -271,7 +282,10 @@ def deal(state: State, deck_num: int, wager: int) -> Page:
     returns a page where the player can hit, stand, or double down
     """
     if state.num_decks < 1:
-        state.num_decks = deck_num
+        if deck_num > 25:
+            state.num_decks = 25
+        else:
+            state.num_decks = deck_num
         state.card_decks = make_decks(state.num_decks)
         
     if wager > state.total_points:
