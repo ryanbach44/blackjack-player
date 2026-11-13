@@ -174,7 +174,9 @@ assert_equal(index(State(1000, 0, [], "", "")), Page(State(1000, 0, [[]], "", ""
                                                          TextBox("deck_num"),
                                                         "\nWager: ",
                                                         TextBox("wager"),
-                                                        Button("Deal", "deal")
+                                                        Button("Deal", "deal"),
+                                                        "\n",
+                                                        Button("How To Play","rules")
                                                         ])
              )
 
@@ -307,7 +309,7 @@ def deal(state: State, deck_num: str, wager: str) -> Page:
     else :
         deck_num = int(deck_num)
     
-    if wager == "" or not wager.isdigit():
+    if wager == "" or not wager.isdigit() or int(wager) <= 0:
         return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
                     [Header("Blackjack ♠♥♣♦"),
                     "Invalid Wager, Try Again\n" +
