@@ -163,9 +163,9 @@ def index(state: State) -> Page:
                  TextBox("deck_num"),
                 "\nWager: ",
                 TextBox("wager"),
-                Button("Deal", "deal")#,
-                #"\n",
-                #Button("How To Play","rules")
+                Button("Deal", "deal"),
+                "\n",
+                Button("How To Play","rules")
                 ])
 assert_equal(index(State(1000, 0, [], "", "")), Page(State(1000, 0, [[]], "", ""),
                                                         [Header("Blackjack ♠♥♣♦"),
@@ -189,7 +189,7 @@ def new_game_win(state: State) -> Page:
                 "Total Points: " + str(state.total_points) + "\n",
                 "\nWager: ",
                 TextBox("wager"),
-                Button("Deal", "deal", [Argument("deck_num", state.num_decks)]),
+                Button("Deal", "deal", [Argument("deck_num", str(state.num_decks))]),
                 Button("End Game", "finish")
                 ])
 assert_equal(new_game_win(State(1000, 2, [[]], "2♠5♦", "4♥6♣")), Page(State(1000, 2, [[]], "", ""),
@@ -216,7 +216,7 @@ def new_game_loss(state: State) -> Page:
                 "Total Points: " + str(state.total_points) + "\n",
                 "\nWager: ",
                 TextBox("wager"),
-                Button("Deal", "deal", [Argument("deck_num", state.num_decks)]),
+                Button("Deal", "deal", [Argument("deck_num", str(state.num_decks))]),
                 Button("End Game", "finish")
                 ])
 assert_equal(new_game_loss(State(1000, 2, [[]], "2♠5♦", "4♥6♣")), Page(State(1000, 2, [[]], "", ""),
@@ -243,7 +243,7 @@ def new_game_push(state: State) -> Page:
                 "Total Points: " + str(state.total_points) + "\n",
                 "\nWager: ",
                 TextBox("wager"),
-                Button("Deal", "deal", [Argument("deck_num", state.num_decks)]),
+                Button("Deal", "deal", [Argument("deck_num", str(state.num_decks))]),
                 Button("End Game", "finish")
                 ])
 assert_equal(new_game_push(State(1000, 2, [[]], "2♠5♦", "4♥6♣")), Page(State(1000, 2, [[]], "", ""),
@@ -258,21 +258,35 @@ assert_equal(new_game_push(State(1000, 2, [[]], "2♠5♦", "4♥6♣")), Page(S
                                                                         Button("End Game", "finish")
                                                                         ])
              )
-"""
+
+
 @route
-def rules() -> Page:
+def rules(state: State) -> Page:
     "Returns a standard Rules page for how to play blackjack"
-    return Page(Header("How to Play Blackjack ♠♥♣♦"),
-                "Goal: Beat the dealers hand without going over 21\n\n" +
-                "Gameplay:\n	1. You will be dealt 2 cards, 2-A\n" +
-                "	2. Each card has a point value 1-11\n"+
-                "		- 2-10 is worth its value\n		- J, Q, K are worth 10\n"+
-                "		- A can be worth 1 or 11, whichever gets you the most usable points\n"
-                "
-                )
-"""
+    return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
+                 [Header("How to Play Blackjack ♠♥♣♦"),
+                 "Goal: Beat the dealer's hand without going over 21\n\n" +
+                 "Gameplay:\n\t1. You will be dealt 2 cards, 2-A\n" +
+                 "2. Each card has a different point value\n"+
+                 "- 2-10 is worth its value\n\t- J, Q, K are worth 10\n"+
+                 "- A can be worth 1 or 11, whichever gets you the most usable points\n"+
+                 "3. You will then be shown one of the dealer's cards\n" +
+                 "4. Based on what you see you can either hit for another\n"+
+                 "   card or stand and see if you beat the dealer\n"+
+                 "5. If you're really confident you can double down which doubles\n"+
+                 "   your wager and auto deals you one more card before standing\n"+
+                 "6. Once you stand, the dealer will deal cards to try and beat you\n"+
+                 "   until their score is at or above 17\n"+
+                 "7. Both hands will be scored and whoever has closest to 21 without\n"+
+                 "   going over wins the hand\n"+
+                 "8. You'll either win your wager, lose it, or tie and nothing changes\n"+
+                 "9. You may then play another hand or end the game and see your net score\n"+
+                 "Good Luck!",
+                 Button("Back", "index")])
+
+
 @route
-def deal(state: State, deck_num: int, wager: int) -> Page:
+def deal(state: State, deck_num: str, wager: str) -> Page:
     """
     (can't unit test, uses random)
     Deals out two random cards from a number of decks decided by the player,
@@ -281,9 +295,35 @@ def deal(state: State, deck_num: int, wager: int) -> Page:
     automatic wins or losses if either the player or dealer is dealt 21, otherwise
     returns a page where the player can hit, stand, or double down
     """
+    if deck_num == "" or not deck_num.isdigit():
+        return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
+                    [Header("Blackjack ♠♥♣♦"),
+                    "Invalid Decks, Try Again\n" +
+                    "Total Points: " + str(state.total_points) + "\n",
+                    "\nNumber of Decks: ",
+                    TextBox("deck_num"),
+                    Button("Deal", "deal", [Argument("wager", str(wager))])
+                    ])
+    else :
+        deck_num = int(deck_num)
+    
+    if wager == "" or not wager.isdigit():
+        return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
+                    [Header("Blackjack ♠♥♣♦"),
+                    "Invalid Wager, Try Again\n" +
+                    "Total Points: " + str(state.total_points) + "\n",
+                    "\nWager: ",
+                    TextBox("wager"),
+                    Button("Deal", "deal", [Argument("deck_num", str(deck_num))])
+                    ])
+    else:
+        wager = int(wager)
+        
     if state.num_decks < 1:
         if deck_num > 25:
             state.num_decks = 25
+        elif deck_num < 1:
+            state.num_decks = 1
         else:
             state.num_decks = deck_num
         state.card_decks = make_decks(state.num_decks)
