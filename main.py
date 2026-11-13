@@ -65,7 +65,6 @@ def make_deck() -> Deck:
                 deck.append("K" + suit)
     return Deck(deck)
 
-
 def make_decks(num_of_decks: int) -> list[Deck]:
     """
     Makes multiple decks of cards
@@ -153,6 +152,15 @@ assert_equal(hand_score("4♠10♣5♠A♣"), 20)
     
 @route
 def index(state: State) -> Page:
+    """
+    The first page the player sees at the beginning og a new game
+    
+    Args:
+        state: State, state variables to be defined through the game
+        
+    Returns:
+        A page allowing the player to set the decks and make an inital wager
+    """
     state.total_points = 1000
     state.num_decks = 0
     state.card_decks = [[]]
@@ -182,6 +190,15 @@ assert_equal(index(State(1000, 0, [], "", "")), Page(State(1000, 0, [[]], "", ""
 
 @route
 def new_game_win(state: State) -> Page:
+    """
+    The page the player sees when they win an individual hand
+    
+    Args:
+        state: State, state variables to show the player and start the next hand
+        
+    Returns:
+        A Page congradulating the player and giving them the option to play agian or stop
+    """
     
     return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
                 [Header("Blackjack ♠♥♣♦"),
@@ -209,7 +226,15 @@ assert_equal(new_game_win(State(1000, 2, [[]], "2♠5♦", "4♥6♣")), Page(St
 
 @route
 def new_game_loss(state: State) -> Page:
+    """
+    The page the player sees when they lose an individual hand
     
+    Args:
+        state: State, state variables to show the player and start the next hand
+        
+    Returns:
+        A Page telling the player they lost and gives them the option to play agian or stop
+    """
     return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
                 [Header("Blackjack ♠♥♣♦"),
                 "You lost :(\n" +
@@ -236,7 +261,15 @@ assert_equal(new_game_loss(State(1000, 2, [[]], "2♠5♦", "4♥6♣")), Page(S
              
 @route
 def new_game_push(state: State) -> Page:
+    """
+    The page the player sees when they tie an individual hand
     
+    Args:
+        state: State, state variables to show the player and start the next hand
+        
+    Returns:
+        A Page telling the player nothing happened and gives them the option to play agian or stop
+    """
     return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
                 [Header("Blackjack ♠♥♣♦"),
                 "Push, Try Again\n" +
@@ -248,10 +281,10 @@ def new_game_push(state: State) -> Page:
                 Button("Deal", "deal", [Argument("deck_num", str(state.num_decks))]),
                 Button("End Game", "finish")
                 ])
-assert_equal(new_game_push(State(1000, 2, [[]], "2♠5♦", "4♥6♣")), Page(State(1000, 2, [[]], "", ""),
+assert_equal(new_game_push(State(1000, 2, [[]], "2♠8♦", "4♥6♣")), Page(State(1000, 2, [[]], "", ""),
                                                                         [Header("Blackjack ♠♥♣♦"),
                                                                         "Push, Try Again" + "\n" +
-                                                                        "Your Cards: 2♠5♦\n" +
+                                                                        "Your Cards: 2♠8♦\n" +
                                                                         "Dealer Cards: 4♥6♣\n" +
                                                                         "Total Points: 1000\n",
                                                                         "\nWager: ",
@@ -296,6 +329,17 @@ def deal(state: State, deck_num: str, wager: str) -> Page:
     speacial pages if the wager is too high, one if there is no wager returns
     automatic wins or losses if either the player or dealer is dealt 21, otherwise
     returns a page where the player can hit, stand, or double down
+    
+    Args:
+        state: State, state variables that can be used or changed in the function
+        deck_num: str, whatever the player types into the deck_num field, function determines validity
+                        and if valid, sets how many decks to be dealt
+        wager: str, whatever the player types into the wager field, function determines validity
+                    and if valid, sets the running wager for that one hand
+                    
+    Returns:
+        Can return certain error pages depending on user input or immediate wins and losses if
+        player or dealer is dealt 21, otherwise shows the player the cards and allows hit or stand
     """
     if deck_num == "" or not deck_num.isdigit():
         return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
@@ -375,6 +419,13 @@ def hit(state: State, wager: int) -> Page:
     (Can't unit test, uses random)
     Adds one random card to the player's hand and then calculates the score of the hand
     to determine if the player has busted or is still under 21 and can hit again.
+    
+    Args:
+        state: State, state variables to be used or changed in the function
+        wager: int, whatever the running wager is for that hand
+        
+    Returns:
+        The loss page if their hand goes over 21 after a hit, or a page allowing to hit or stand
     """
     state.player_cards += give_cards(state)
     score_player = hand_score(state.player_cards)
@@ -396,6 +447,13 @@ def stand(state: State, wager: int) -> Page:
     """
     (Unit test only applies to cases where the score of the dealer hand
         is >=17 because if it is less, the dealer starts taking random cards)
+        
+    Args:
+        state: State, state variables to be used or changed in the function
+        wager: int, whatever the running wager is for that hand
+    
+    Returns:
+        Either the win, loss, or push pages depending on how the scores for player and dealer come out
     """
     score_player = hand_score(state.player_cards)
     score_dealer = hand_score(state.dealer_cards)
@@ -464,12 +522,29 @@ def double(state: State, wager: int):
     """
     (Can't unit test, deals out one more random card
     and then forces the player to stand, doubling their wager)
+    
+    Args:
+        state: State, state variables to be used or changed in the function
+        wager: int, whatever the running wager is for that hand
+        
+    Returns:
+        An immediate win, loss, or push depending on how their score turns out after one new card 
     """
     state.player_cards += give_cards(state)
     return stand(state, wager*2)
 
 @route
 def finish(state: State):
+    """
+    The page that returns when the player is done playing and wants to cash out their points
+    
+    Args:
+        tate: State, state variables to be used or changed in the function
+        wager: int, whatever the running wager is for that hand
+        
+    Returns:
+        A page depending on whether the player had a net gain, loss or nothing in points
+    """
     if (state.total_points - 1000) > 0:
         return Page(State(state.total_points, state.num_decks, state.card_decks, state.player_cards, state.dealer_cards),
                     [Header("Blackjack ♠♥♣♦"),
