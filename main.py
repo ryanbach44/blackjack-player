@@ -235,6 +235,17 @@ def new_game_loss(state: State) -> Page:
     Returns:
         A Page telling the player they lost and gives them the option to play agian or stop
     """
+    
+    if state.total_points == 0:
+        return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
+                [Header("Blackjack ♠♥♣♦"),
+                "You lost :(\n" +
+                "Your Cards: " + state.player_cards + "\n" +
+                "Dealer Cards: "+ state.dealer_cards + "\n" +
+                "Total Points: " + str(state.total_points) + "\n",
+                Button("End Game", "finish")
+                ])
+    
     return Page(State(state.total_points, state.num_decks, state.card_decks, "", ""),
                 [Header("Blackjack ♠♥♣♦"),
                 "You lost :(\n" +
@@ -580,4 +591,3 @@ assert_equal(finish(State(900, 2, [[]], "", "")), Page(State(900, 2, [[]], "", "
                                                                 ]))
     
 start_server(State(1000, 0, [[]], "", ""))
-
